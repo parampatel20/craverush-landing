@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CraveRush – Hot Food, Fast Delivery</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* ────────────────────────────────────────
+       DESIGN TOKENS
+    ──────────────────────────────────────── */
+    :root {
+      --cr-bg:       #0C0C0E;
+      --cr-surface:  #141418;
+      --cr-card:     #1C1C22;
+      --cr-border:   rgba(255,255,255,.08);
+      --cr-orange:   #FF5722;
+      --cr-orange2:  #FF8C42;
+      --cr-yellow:   #FFD93D;
+      --cr-green:    #4CAF82;
+      --cr-red:      #FF3B5C;
+      --cr-text:     #F0EDE8;
+      --cr-muted:    rgba(240,237,232,.45);
+      --cr-radius:   18px;
+      --cr-radius-sm:10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cr-bg);
+      color: var(--cr-text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── headings ── */
+    h1, h2, h3, h4 {
+      color: var(--cr-text);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -.025em;
+    }
+    h1 { font-size: clamp(2.8rem, 6vw, 5.5rem); }
+    h2 { font-size: clamp(1.8rem, 3.5vw, 3rem); }
+    h3 { font-size: 1.15rem; font-weight: 700; }
+
+    /* ── layout ── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+    section { padding: 6rem 0; }
+
+    /* ══════════════════════════════════════
+       ANIMATED BACKGROUND BLOBS
+    ═════════════════════════════════════= */
+    .blob-wrap {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0;
+      overflow: hidden;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: .18;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    .blob-1 { width: 500px; height: 500px; background: var(--cr-orange); top: -100px; left: -120px; animation-delay: 0s; }
+    .blob-2 { width: 400px; height: 400px; background: var(--cr-red);    bottom: 10%;  right: -80px;  animation-delay: -4s; }
+    .blob-3 { width: 300px; height: 300px; background: var(--cr-yellow); top: 40%;    left: 35%;    animation-delay: -8s; opacity: .1; }
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(30px, 40px) scale(1.06); }
+    }
+
+    /* ══════════════════════════════════════
+       HEADER
+    ═════════════════════════════════════= */
+    .site-header {
+      position: sticky; top: 0; z-index: 200;
+      background: rgba(12,12,14,.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--cr-border);
+    }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 1.5rem;
+      max-width: 1200px; margin: 0 auto; gap: 1rem;
+    }
+    .logo {
+      display: flex; align-items: center; gap: .55rem;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--cr-orange), var(--cr-red));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+    }
+    .logo-text { font-size: 1.3rem; font-weight: 900; color: var(--cr-text); letter-spacing: -.03em; }
+    .logo-text span { color: var(--cr-orange); }
+
+    .nav-links { display: flex; gap: .2rem; list-style: none; }
+    .nav-a {
+      color: var(--cr-muted); font-size: .9rem; font-weight: 500;
+      text-decoration: none; padding: .4rem .85rem; border-radius: 50px;
+      transition: color .15s, background .15s;
+    }
+    .nav-a:hover { color: var(--cr-text); background: rgba(255,255,255,.06); }
+
+    .btn-nav {
+      background: var(--cr-orange);
+      color: #fff; font-weight: 700; font-size: .88rem;
+      padding: .6rem 1.4rem; border-radius: 50px;
+      border: none; cursor: pointer; text-decoration: none;
+      transition: background .18s, transform .18s;
+    }
+    .btn-nav:hover { background: var(--cr-orange2); transform: scale(1.04); }
+
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: .4rem; }
+    .hamburger span { width: 22px; height: 2px; background: var(--cr-text); border-radius: 2px; }
+    .mobile-nav { display: none; flex-direction: column; gap: .3rem; padding: 1rem 1.5rem 1.25rem; border-top: 1px solid var(--cr-border); }
+    .mobile-nav.open { display: flex; }
+
+    /* ══════════════════════════════════════
+       HERO
+    ═════════════════════════════════════= */
+    .hero {
+      position: relative; z-index: 1;
+      padding: 7rem 0 5rem; overflow: hidden;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: center;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(255,87,34,.15);
+      border: 1px solid rgba(255,87,34,.3);
+      color: var(--cr-orange2);
+      font-size: .8rem; font-weight: 700;
+      padding: .35rem .9rem; border-radius: 50px;
+      letter-spacing: .06em; text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 { margin-bottom: 1.5rem; }
+    .hero h1 .accent {
+      display: block;
+      background: linear-gradient(90deg, var(--cr-orange), var(--cr-yellow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      color: var(--cr-muted); font-size: 1.1rem;
+      max-width: 460px; margin-bottom: 2.25rem;
+    }
+    .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: linear-gradient(135deg, var(--cr-orange), var(--cr-red));
+      color: #fff; font-weight: 800; font-size: 1rem;
+      padding: .9rem 2rem; border-radius: 50px;
+      border: none; cursor: pointer; text-decoration: none;
+      box-shadow: 0 6px 24px rgba(255,87,34,.4);
+      transition: transform .18s, box-shadow .18s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255,87,34,.55); }
+
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--cr-border);
+      color: var(--cr-text); font-weight: 600; font-size: 1rem;
+      padding: .9rem 2rem; border-radius: 50px;
+      text-decoration: none;
+      transition: background .18s, transform .18s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,.11); transform: translateY(-2px); }
+
+    .hero-trust {
+      display: flex; align-items: center; gap: 1.25rem;
+      margin-top: 2rem; flex-wrap: wrap;
+    }
+    .avatar-stack { display: flex; }
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 2px solid var(--cr-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; font-weight: 700;
+      margin-left: -8px;
+    }
+    .avatar:first-child { margin-left: 0; }
+    .trust-text { font-size: .85rem; color: var(--cr-muted); }
+    .trust-text strong { color: var(--cr-text); }
+
+    /* ── hero visual (order card + tracker) ── */
+    .hero-visual { position: relative; }
+    .order-card {
+      background: var(--cr-card);
+      border: 1px solid var(--cr-border);
+      border-radius: var(--cr-radius);
+      padding: 1.5rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 24px 60px rgba(0,0,0,.5);
+    }
+    .order-card-top {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 1.25rem;
+    }
+    .order-tag {
+      font-size: .72rem; font-weight: 700;
+      color: var(--cr-green);
+      background: rgba(76,175,130,.12);
+      border: 1px solid rgba(76,175,130,.25);
+      padding: .25rem .7rem; border-radius: 50px;
+      display: flex; align-items: center; gap: .4rem;
+    }
+    .pulse { width: 7px; height: 7px; background: var(--cr-green); border-radius: 50%; animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.5; transform:scale(1.3); } }
+
+    .order-time { font-size: .8rem; color: var(--cr-muted); }
+
+    .food-items { display: flex; flex-direction: column; gap: .85rem; margin-bottom: 1.5rem; }
+    .food-item {
+      display: flex; align-items: center; gap: .9rem;
+      background: rgba(255,255,255,.04);
+      border-radius: var(--cr-radius-sm);
+      padding: .75rem;
+    }
+    .food-emoji { font-size: 1.8rem; width: 44px; text-align: center; }
+    .food-name { font-weight: 700; font-size: .9rem; }
+    .food-rest { font-size: .78rem; color: var(--cr-muted); }
+    .food-price { margin-left: auto; font-weight: 800; color: var(--cr-orange); font-size: .95rem; }
+
+    .tracker {
+      background: rgba(255,255,255,.04);
+      border-radius: var(--cr-radius-sm);
+      padding: 1rem 1.1rem;
+    }
+    .tracker-label { font-size: .78rem; color: var(--cr-muted); margin-bottom: .8rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+    .tracker-steps { display: flex; align-items: center; }
+    .t-step {
+      display: flex; flex-direction: column;
+      align-items: center; gap: .4rem; flex: 1;
+    }
+    .t-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem;
+    }
+    .t-dot.done   { background: var(--cr-green);  color: #fff; }
+    .t-dot.active { background: var(--cr-orange);  color: #fff; animation: pulse 1.4s ease-in-out infinite; }
+    .t-dot.todo   { background: rgba(255,255,255,.08); color: var(--cr-muted); }
+    .t-lbl { font-size: .68rem; color: var(--cr-muted); text-align: center; line-height: 1.2; }
+    .t-lbl.done-lbl { color: var(--cr-green); }
+    .t-lbl.active-lbl { color: var(--cr-orange); }
+    .t-line { flex: 1; height: 2px; background: rgba(255,255,255,.08); margin-top: -14px; }
+    .t-line.done { background: var(--cr-green); }
+
+    /* floating stickers */
+    .sticker {
+      position: absolute;
+      background: var(--cr-card);
+      border: 1px solid var(--cr-border);
+      border-radius: 14px;
+      padding: .65rem 1.1rem;
+      font-size: .82rem; font-weight: 700;
+      display: flex; align-items: center; gap: .5rem;
+      box-shadow: 0 8px 28px rgba(0,0,0,.4);
+      white-space: nowrap;
+    }
+    .sticker-1 { top: -24px; right: -20px; }
+    .sticker-2 { bottom: -18px; left: -24px; }
+
+    /* ══════════════════════════════════════
+       CATEGORIES STRIP
+    ═════════════════════════════════════= */
+    .categories { padding: 2.5rem 0; position: relative; z-index: 1; }
+    .cat-strip {
+      display: flex; gap: 1rem;
+      overflow-x: auto; padding-bottom: .5rem;
+      scrollbar-width: none;
+    }
+    .cat-strip::-webkit-scrollbar { display: none; }
+    .cat-chip {
+      display: flex; flex-direction: column; align-items: center; gap: .45rem;
+      background: var(--cr-card);
+      border: 1px solid var(--cr-border);
+      border-radius: 16px;
+      padding: 1.1rem 1.4rem;
+      cursor: pointer; text-decoration: none;
+      min-width: 90px;
+      transition: border-color .18s, transform .18s, background .18s;
+      flex-shrink: 0;
+    }
+    .cat-chip:hover, .cat-chip.active {
+      border-color: var(--cr-orange);
+      background: rgba(255,87,34,.08);
+      transform: translateY(-3px);
+    }
+    .cat-emoji { font-size: 1.8rem; }
+    .cat-name  { font-size: .75rem; font-weight: 700; color: var(--cr-muted); white-space: nowrap; }
+    .cat-chip:hover .cat-name, .cat-chip.active .cat-name { color: var(--cr-orange); }
+
+    /* ══════════════════════════════════════
+       MENU CARDS
+    ═════════════════════════════════════= */
+    .menu-section { position: relative; z-index: 1; }
+    .section-header {
+      display: flex; align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .see-all {
+      font-size: .88rem; font-weight: 700;
+      color: var(--cr-orange); text-decoration: none;
+      display: flex; align-items: center; gap: .3rem;
+      transition: gap .15s;
+    }
+    .see-all:hover { gap: .6rem; }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+    .menu-card {
+      background: var(--cr-card);
+      border: 1px solid var(--cr-border);
+      border-radius: var(--cr-radius);
+      overflow: hidden;
+      transition: transform .22s, box-shadow .22s;
+      cursor: pointer;
+    }
+    .menu-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(0,0,0,.5);
+      border-color: rgba(255,87,34,.3);
+    }
+    .menu-img {
+      height: 180px; background: var(--cr-surface);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 5rem; position: relative;
+      overflow: hidden;
+    }
+    .menu-badge {
+      position: absolute; top: .8rem; left: .8rem;
+      background: var(--cr-orange);
+      color: #fff; font-size: .7rem; font-weight: 800;
+      padding: .25rem .65rem; border-radius: 50px;
+    }
+    .menu-badge.green { background: var(--cr-green); }
+    .menu-badge.yellow { background: var(--cr-yellow); color: #1a1a1a; }
+    .menu-body { padding: 1.1rem; }
+    .menu-title { font-size: 1rem; font-weight: 800; margin-bottom: .35rem; }
+    .menu-rest {
+      font-size: .78rem; color: var(--cr-muted);
+      display: flex; align-items: center; gap: .6rem; margin-bottom: .9rem;
+    }
+    .menu-meta {
+      display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    .menu-price { font-size: 1.1rem; font-weight: 900; color: var(--cr-text); }
+    .menu-price span { font-size: .75rem; color: var(--cr-muted); text-decoration: line-through; margin-left: .3rem; }
+    .rating { display: flex; align-items: center; gap: .3rem; font-size: .82rem; font-weight: 700; }
+    .star { color: var(--cr-yellow); }
+    .add-btn {
+      background: var(--cr-orange); color: #fff;
+      width: 34px; height: 34px; border-radius: 50%;
+      border: none; font-size: 1.2rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; transition: background .18s, transform .18s;
+      flex-shrink: 0;
+    }
+    .add-btn:hover { background: var(--cr-orange2); transform: scale(1.15); }
+
+    /* ══════════════════════════════════════
+       HOW IT WORKS
+    ═════════════════════════════════════= */
+    .how-section {
+      background: var(--cr-surface);
+      border-top: 1px solid var(--cr-border);
+      border-bottom: 1px solid var(--cr-border);
+      position: relative; z-index: 1;
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 2rem;
+    }
+    .step-card { text-align: center; }
+    .step-num {
+      width: 60px; height: 60px; margin: 0 auto 1.25rem;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--cr-orange), var(--cr-red));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem;
+    }
+    .step-card h3 { margin-bottom: .5rem; }
+    .step-card p { font-size: .9rem; color: var(--cr-muted); }
+    .step-arrow {
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: var(--cr-muted); margin-top: 1.5rem;
+    }
+
+    /* ══════════════════════════════════════
+       RESTAURANT PARTNERS
+    ═════════════════════════════════════= */
+    .partners-section { position: relative; z-index: 1; }
+    .partners-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .partner-card {
+      background: var(--cr-card);
+      border: 1px solid var(--cr-border);
+      border-radius: var(--cr-radius);
+      padding: 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+      transition: transform .2s, border-color .2s;
+    }
+    .partner-card:hover { transform: translateY(-4px); border-color: rgba(255,87,34,.3); }
+    .partner-logo {
+      width: 56px; height: 56px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; flex-shrink: 0;
+    }
+    .partner-name { font-weight: 800; font-size: .95rem; }
+    .partner-type { font-size: .78rem; color: var(--cr-muted); margin: .2rem 0 .5rem; }
+    .partner-meta { display: flex; align-items: center; gap: .75rem; font-size: .78rem; }
+    .p-badge {
+      background: rgba(76,175,130,.12);
+      border: 1px solid rgba(76,175,130,.25);
+      color: var(--cr-green);
+      padding: .15rem .55rem; border-radius: 50px;
+      font-size: .7rem; font-weight: 700;
+    }
+
+    /* ══════════════════════════════════════
+       APP DOWNLOAD
+    ═════════════════════════════════════= */
+    .app-section {
+      background: var(--cr-surface);
+      border-top: 1px solid var(--cr-border);
+      position: relative; z-index: 1;
+    }
+    .app-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: center;
+    }
+    .app-phones {
+      display: flex; justify-content: center;
+      gap: -1rem; position: relative;
+    }
+    .phone-mock {
+      width: 180px;
+      background: var(--cr-card);
+      border: 1px solid var(--cr-border);
+      border-radius: 28px;
+      padding: 1.25rem 1rem;
+      box-shadow: 0 20px 50px rgba(0,0,0,.5);
+      display: flex; flex-direction: column; gap: .8rem;
+    }
+    .phone-mock:first-child {
+      transform: rotate(-6deg) translateX(20px);
+      z-index: 0;
+    }
+    .phone-mock:last-child {
+      transform: rotate(4deg) translateX(-20px);
+      z-index: 0;
+    }
+    .phone-notch {
+      width: 60px; height: 14px;
+      background: rgba(255,255,255,.1);
+      border-radius: 50px; margin: 0 auto;
+    }
+    .phone-row {
+      background: rgba(255,255,255,.05);
+      border-radius: 10px;
+      padding: .6rem; display: flex; gap: .5rem; align-items: center;
+    }
+    .ph-ico { font-size: 1.2rem; }
+    .ph-line1 { width: 70%; height: 8px; background: rgba(255,255,255,.15); border-radius: 4px; margin-bottom: .25rem; }
+    .ph-line2 { width: 45%; height: 6px; background: rgba(255,255,255,.08); border-radius: 4px; }
+    .ph-price { margin-left: auto; font-size: .75rem; font-weight: 800; color: var(--cr-orange); }
+
+    .app-store-btns { display: flex; flex-direction: column; gap: .85rem; margin-top: 2rem; max-width: 280px; }
+    .store-btn {
+      background: var(--cr-card);
+      border: 1px solid var(--cr-border);
+      border-radius: 14px;
+      padding: .9rem 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+      text-decoration: none;
+      transition: background .18s, border-color .18s, transform .18s;
+    }
+    .store-btn:hover { background: rgba(255,255,255,.06); border-color: var(--cr-orange); transform: translateX(4px); }
+    .store-icon { font-size: 1.8rem; }
+    .store-label { font-size: .7rem; color: var(--cr-muted); }
+    .store-name  { font-size: 1rem; font-weight: 800; color: var(--cr-text); }
+
+    /* ══════════════════════════════════════
+       STATS BAND
+    ═════════════════════════════════════= */
+    .stats-band {
+      border-top: 1px solid var(--cr-border);
+      border-bottom: 1px solid var(--cr-border);
+      background: rgba(255,87,34,.04);
+      position: relative; z-index: 1;
+      padding: 3rem 0;
+    }
+    .stats-inner {
+      display: flex; justify-content: space-around;
+      gap: 1.5rem; flex-wrap: wrap;
+      max-width: 1200px; margin: 0 auto; padding: 0 1.5rem;
+    }
+    .stat-box { text-align: center; }
+    .stat-n {
+      font-size: 2.8rem; font-weight: 900;
+      background: linear-gradient(90deg, var(--cr-orange), var(--cr-yellow));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; line-height: 1;
+      margin-bottom: .35rem;
+    }
+    .stat-l { font-size: .85rem; color: var(--cr-muted); font-weight: 600; }
+
+    /* ══════════════════════════════════════
+       PROMO BANNER
+    ═════════════════════════════════════= */
+    .promo-section { position: relative; z-index: 1; }
+    .promo-inner {
+      background: linear-gradient(135deg, #1a0a03 0%, #2a0f04 50%, #1a0506 100%);
+      border: 1px solid rgba(255,87,34,.25);
+      border-radius: 24px;
+      padding: 4rem 3rem;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .promo-inner::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 70% at 50% 0%, rgba(255,87,34,.15) 0%, transparent 70%);
+    }
+    .promo-inner > * { position: relative; z-index: 1; }
+    .promo-code {
+      display: inline-block;
+      background: rgba(255,87,34,.15);
+      border: 2px dashed rgba(255,87,34,.4);
+      color: var(--cr-orange2);
+      font-size: 1.8rem; font-weight: 900;
+      padding: .5rem 2rem; border-radius: 12px;
+      letter-spacing: .15em; margin-bottom: 1.5rem;
+    }
+    .promo-inner h2 { margin-bottom: .75rem; }
+    .promo-inner p  { color: var(--cr-muted); margin-bottom: 2rem; max-width: 420px; margin-left: auto; margin-right: auto; }
+
+    /* ══════════════════════════════════════
+       FOOTER
+    ═════════════════════════════════════= */
+    .site-footer {
+      background: var(--cr-surface);
+      border-top: 1px solid var(--cr-border);
+      position: relative; z-index: 1;
+      padding: 4rem 0 2rem;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; margin-bottom: 3rem;
+    }
+    .footer-tagline { font-size: .9rem; color: var(--cr-muted); margin-top: .75rem; max-width: 240px; line-height: 1.6; }
+    .footer-socials { display: flex; gap: .65rem; margin-top: 1.5rem; }
+    .soc-btn {
+      width: 38px; height: 38px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--cr-border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none; font-size: 1rem;
+      transition: background .15s, border-color .15s;
+    }
+    .soc-btn:hover { background: rgba(255,87,34,.15); border-color: var(--cr-orange); }
+    .footer-col h4 { font-size: .88rem; color: var(--cr-text); margin-bottom: 1rem; letter-spacing: .05em; text-transform: uppercase; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: .6rem; }
+    .footer-col a { color: var(--cr-muted); text-decoration: none; font-size: .88rem; transition: color .15s; }
+    .footer-col a:hover { color: var(--cr-orange); }
+    .footer-bottom {
+      border-top: 1px solid var(--cr-border);
+      padding-top: 1.5rem;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 1rem;
+      font-size: .83rem; color: var(--cr-muted);
+    }
+    .footer-badges { display: flex; gap: .75rem; }
+    .f-badge {
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--cr-border);
+      border-radius: 8px; padding: .3rem .75rem;
+      font-size: .75rem; font-weight: 700; color: var(--cr-muted);
+    }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE
+    ═════════════════════════════════════= */
+    @media (max-width: 900px) {
+      .hero-grid, .app-inner { grid-template-columns: 1fr; }
+      .hero-visual { margin-top: 3rem; }
+      .app-phones  { margin-top: 2.5rem; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .nav-links, .btn-nav { display: none; }
+      .hamburger { display: flex; }
+      h1 { font-size: 2.6rem; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .sticker-1, .sticker-2 { display: none; }
+      section { padding: 4rem 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- animated bg blobs -->
+<div class="blob-wrap">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     HEADER
+════════════════════════════════════════ -->
+<header class="site-header">
+  <nav class="nav-inner">
+    <a href="#" class="logo">
+      <div class="logo-icon">🍔</div>
+      <span class="logo-text">Crave<span>Rush</span></span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a class="nav-a" href="#menu">Menu</a></li>
+      <li><a class="nav-a" href="#how">How It Works</a></li>
+      <li><a class="nav-a" href="#partners">Restaurants</a></li>
+      <li><a class="nav-a" href="#app">App</a></li>
+    </ul>
+
+    <a href="#menu" class="btn-nav">Order Now 🔥</a>
+
+    <button class="hamburger" id="hamburgerBtn">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <div class="mobile-nav" id="mobileNav">
+    <a class="nav-a" href="#menu">Menu</a>
+    <a class="nav-a" href="#how">How It Works</a>
+    <a class="nav-a" href="#partners">Restaurants</a>
+    <a class="nav-a" href="#app">App</a>
+    <a href="#menu" class="btn-primary" style="margin-top:.5rem;width:fit-content">Order Now 🔥</a>
+  </div>
+</header>
+
+
+<!-- ══════════════════════════════════════
+     HERO
+════════════════════════════════════════ -->
+<section class="hero" id="hero">
+  <div class="container">
+    <div class="hero-grid">
+
+      <!-- copy -->
+      <div>
+        <div class="hero-eyebrow">
+          🔥 Now delivering in 25+ cities
+        </div>
+        <h1>
+          Hungry?<br>
+          <span class="accent">Food at Your</span>
+          <span class="accent">Door in 20 Min.</span>
+        </h1>
+        <p class="hero-sub">
+          CraveRush partners with 800+ top restaurants to bring your favourite meals 
+          blazing fast. Real-time tracking, zero delivery fees on your first 3 orders.
+        </p>
+        <div class="hero-actions">
+          <a href="#menu" class="btn-primary">🍕 Order Now</a>
+          <a href="#how" class="btn-secondary">See How It Works</a>
+        </div>
+        <div class="hero-trust">
+          <div class="avatar-stack">
+            <div class="avatar" style="background:#FF5722;">A</div>
+            <div class="avatar" style="background:#9C27B0;">S</div>
+            <div class="avatar" style="background:#2196F3;">K</div>
+            <div class="avatar" style="background:#4CAF50;">R</div>
+            <div class="avatar" style="background:#FF9800;">+</div>
+          </div>
+          <div class="trust-text">
+            <strong>2.4M+</strong> happy customers &nbsp;·&nbsp; ⭐ 4.9 rating
+          </div>
+        </div>
+      </div>
+
+      <!-- visual -->
+      <div class="hero-visual">
+        <div style="position:relative;display:inline-block;">
+          <div class="order-card">
+            <div class="order-card-top">
+              <div style="font-weight:800;font-size:1rem;">Your Order</div>
+              <div class="order-tag">
+                <div class="pulse"></div> On the way
+              </div>
+            </div>
+
+            <div class="food-items">
+              <div class="food-item">
+                <div class="food-emoji">🍔</div>
+                <div>
+                  <div class="food-name">Classic Smash Burger</div>
+                  <div class="food-rest">The Burger Lab · x1</div>
+                </div>
+                <div class="food-price">₹249</div>
+              </div>
+              <div class="food-item">
+                <div class="food-emoji">🍟</div>
+                <div>
+                  <div class="food-name">Loaded Waffle Fries</div>
+                  <div class="food-rest">The Burger Lab · x1</div>
+                </div>
+                <div class="food-price">₹129</div>
+              </div>
+              <div class="food-item">
+                <div class="food-emoji">🥤</div>
+                <div>
+                  <div class="food-name">Mango Shake</div>
+                  <div class="food-rest">The Burger Lab · x2</div>
+                </div>
+                <div class="food-price">₹138</div>
+              </div>
+            </div>
+
+            <div class="tracker">
+              <div class="tracker-label">Live Delivery Tracker</div>
+              <div class="tracker-steps">
+                <div class="t-step">
+                  <div class="t-dot done">✓</div>
+                  <div class="t-lbl done-lbl">Confirmed</div>
+                </div>
+                <div class="t-line done"></div>
+                <div class="t-step">
+                  <div class="t-dot done">✓</div>
+                  <div class="t-lbl done-lbl">Preparing</div>
+                </div>
+                <div class="t-line done"></div>
+                <div class="t-step">
+                  <div class="t-dot active">🛵</div>
+                  <div class="t-lbl active-lbl">On the Way</div>
+                </div>
+                <div class="t-line"></div>
+                <div class="t-step">
+                  <div class="t-dot todo">🏠</div>
+                  <div class="t-lbl">Delivered</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.1rem;padding-top:1rem;border-top:1px solid var(--cr-border)">
+              <div style="font-size:.85rem;color:var(--cr-muted)">Total</div>
+              <div style="font-size:1.2rem;font-weight:900;color:var(--cr-text)">₹516</div>
+            </div>
+          </div>
+
+          <div class="sticker sticker-1">⚡ 18 min away</div>
+          <div class="sticker sticker-2">🎉 Free delivery!</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     STATS BAND
+════════════════════════════════════════ -->
+<div class="stats-band">
+  <div class="stats-inner">
+    <div class="stat-box">
+      <div class="stat-n">2.4M+</div>
+      <div class="stat-l">Happy Customers</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-n">800+</div>
+      <div class="stat-l">Partner Restaurants</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-n">20 min</div>
+      <div class="stat-l">Avg. Delivery Time</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-n">25+</div>
+      <div class="stat-l">Cities Covered</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-n">4.9 ⭐</div>
+      <div class="stat-l">App Store Rating</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     CATEGORIES
+════════════════════════════════════════ -->
+<section class="categories" id="menu">
+  <div class="container">
+    <div class="cat-strip">
+      <a class="cat-chip active" href="#">
+        <div class="cat-emoji">🔥</div>
+        <div class="cat-name">Trending</div>
+      </a>
+      <a class="cat-chip" href="#">
+        <div class="cat-emoji">🍕</div>
+        <div class="cat-name">Pizza</div>
+      </a>
+      <a class="cat-chip" href="#">
+        <div class="cat-emoji">🍔</div>
+        <div class="cat-name">Burgers</div>
+      </a>
+      <a class="cat-chip" href="#">
+        <div class="cat-emoji">🍜</div>
+        <div class="cat-name">Noodles</div>
+      </a>
+      <a class="cat-chip" href="#">
+        <div class="cat-emoji">🍛</div>
+        <div class="cat-name">Biryani</div>
+      </a>
+      <a class="cat-chip" href="#">
+        <div class="cat-emoji">🥗</div>
+        <div class="cat-name">Healthy</div>
+      </a>
+      <a class="cat-chip" href="#">
+        <div class="cat-emoji">🌮</div>
+        <div class="cat-name">Mexican</div>
+      </a>
+      <a class="cat-chip" href="#">
+        <div class="cat-emoji">🍣</div>
+        <div class="cat-name">Sushi</div>
+      </a>
+      <a class="cat-chip" href="#">
+        <div class="cat-emoji">🍩</div>
+        <div class="cat-name">Desserts</div>
+      </a>
+      <a class="cat-chip" href="#">
+        <div class="cat-emoji">☕</div>
+        <div class="cat-name">Beverages</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     MENU CARDS
+════════════════════════════════════════ -->
+<section class="menu-section" style="padding-top:0;">
+  <div class="container">
+    <div class="section-header">
+      <h2>Trending Right Now 🔥</h2>
+      <a class="see-all" href="#">See all →</a>
+    </div>
+    <div class="menu-grid">
+
+      <div class="menu-card">
+        <div class="menu-img" style="background:linear-gradient(135deg,#1a0a03,#2a1005);">
+          🍕
+          <div class="menu-badge">🔥 Bestseller</div>
+        </div>
+        <div class="menu-body">
+          <div class="menu-title">Margherita Supreme</div>
+          <div class="menu-rest"><span>🏪 Pizza Palace</span><span>·</span><span>⏱ 22 min</span></div>
+          <div class="menu-meta">
+            <div>
+              <div class="menu-price">₹349 <span>₹449</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div class="rating"><span class="star">★</span> 4.8</div>
+              <button class="add-btn">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-img" style="background:linear-gradient(135deg,#0a1400,#102000);">
+          🍔
+          <div class="menu-badge green">✓ Healthy</div>
+        </div>
+        <div class="menu-body">
+          <div class="menu-title">Smash Double Patty</div>
+          <div class="menu-rest"><span>🏪 The Burger Lab</span><span>·</span><span>⏱ 18 min</span></div>
+          <div class="menu-meta">
+            <div class="menu-price">₹499 <span>₹599</span></div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div class="rating"><span class="star">★</span> 4.9</div>
+              <button class="add-btn">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-img" style="background:linear-gradient(135deg,#0a0a1a,#10102a);">
+          🍜
+          <div class="menu-badge yellow">New</div>
+        </div>
+        <div class="menu-body">
+          <div class="menu-title">Ramen Tonkotsu Bowl</div>
+          <div class="menu-rest"><span>🏪 Umami House</span><span>·</span><span>⏱ 30 min</span></div>
+          <div class="menu-meta">
+            <div class="menu-price">₹429</div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div class="rating"><span class="star">★</span> 4.7</div>
+              <button class="add-btn">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-img" style="background:linear-gradient(135deg,#1a0a00,#2a1500);">
+          🍛
+          <div class="menu-badge">🔥 Bestseller</div>
+        </div>
+        <div class="menu-body">
+          <div class="menu-title">Hyderabadi Dum Biryani</div>
+          <div class="menu-rest"><span>🏪 Nawab's Table</span><span>·</span><span>⏱ 35 min</span></div>
+          <div class="menu-meta">
+            <div class="menu-price">₹379 <span>₹449</span></div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div class="rating"><span class="star">★</span> 4.9</div>
+              <button class="add-btn">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-img" style="background:linear-gradient(135deg,#0a0505,#1a0808);">
+          🌮
+          <div class="menu-badge" style="background:var(--cr-red)">Spicy 🌶</div>
+        </div>
+        <div class="menu-body">
+          <div class="menu-title">Fire Chicken Tacos (x3)</div>
+          <div class="menu-rest"><span>🏪 Fiesta Grill</span><span>·</span><span>⏱ 20 min</span></div>
+          <div class="menu-meta">
+            <div class="menu-price">₹299</div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div class="rating"><span class="star">★</span> 4.6</div>
+              <button class="add-btn">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-img" style="background:linear-gradient(135deg,#0a0a05,#1a1a08);">
+          🍩
+          <div class="menu-badge yellow">Sweet 🍬</div>
+        </div>
+        <div class="menu-body">
+          <div class="menu-title">Nutella Lava Donut Box</div>
+          <div class="menu-rest"><span>🏪 SugarRush</span><span>·</span><span>⏱ 15 min</span></div>
+          <div class="menu-meta">
+            <div class="menu-price">₹219 <span>₹279</span></div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div class="rating"><span class="star">★</span> 4.8</div>
+              <button class="add-btn">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     HOW IT WORKS
+════════════════════════════════════════ -->
+<section class="how-section" id="how">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:3rem">
+      <div style="display:inline-block;background:rgba(255,87,34,.12);border:1px solid rgba(255,87,34,.25);color:var(--cr-orange2);font-size:.78rem;font-weight:700;padding:.3rem .85rem;border-radius:50px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.9rem">⚡ Super Simple</div>
+      <h2>Order in 3 Easy Steps</h2>
+      <p style="color:var(--cr-muted);margin-top:.65rem;max-width:420px;margin-left:auto;margin-right:auto;font-size:.95rem">From cravings to doorstep — the fastest food experience you've ever had.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">📍</div>
+        <h3>Set Your Location</h3>
+        <p>Enter your address and instantly see hundreds of restaurants near you, ranked by speed and rating.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">🛒</div>
+        <h3>Pick Your Meal</h3>
+        <p>Browse menus, customize your order, add extras, and checkout in seconds. No friction, no fuss.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">🛵</div>
+        <h3>Track & Enjoy</h3>
+        <p>Watch your delivery in real-time on the map. Your food arrives hot in an average of just 20 minutes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     RESTAURANT PARTNERS
+════════════════════════════════════════ -->
+<section class="partners-section" id="partners">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <h2>800+ Restaurant Partners</h2>
+        <p style="color:var(--cr-muted);font-size:.92rem;margin-top:.4rem">The best local and chain restaurants — all in one place.</p>
+      </div>
+      <a class="see-all" href="#">Browse all →</a>
+    </div>
+    <div class="partners-grid">
+
+      <div class="partner-card">
+        <div class="partner-logo" style="background:rgba(255,87,34,.12);">🍕</div>
+        <div>
+          <div class="partner-name">Pizza Palace</div>
+          <div class="partner-type">Pizza · Italian</div>
+          <div class="partner-meta">
+            <span class="rating"><span class="star">★</span> 4.8</span>
+            <span class="p-badge">Open Now</span>
+            <span style="font-size:.75rem;color:var(--cr-muted)">22 min</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="partner-card">
+        <div class="partner-logo" style="background:rgba(76,175,130,.12);">🍔</div>
+        <div>
+          <div class="partner-name">The Burger Lab</div>
+          <div class="partner-type">Burgers · American</div>
+          <div class="partner-meta">
+            <span class="rating"><span class="star">★</span> 4.9</span>
+            <span class="p-badge">Open Now</span>
+            <span style="font-size:.75rem;color:var(--cr-muted)">18 min</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="partner-card">
+        <div class="partner-logo" style="background:rgba(255,87,34,.12);">🍛</div>
+        <div>
+          <div class="partner-name">Nawab's Table</div>
+          <div class="partner-type">Biryani · North Indian</div>
+          <div class="partner-meta">
+            <span class="rating"><span class="star">★</span> 4.9</span>
+            <span class="p-badge">Open Now</span>
+            <span style="font-size:.75rem;color:var(--cr-muted)">35 min</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="partner-card">
+        <div class="partner-logo" style="background:rgba(33,150,243,.1);">🍣</div>
+        <div>
+          <div class="partner-name">Umami House</div>
+          <div class="partner-type">Sushi · Japanese</div>
+          <div class="partner-meta">
+            <span class="rating"><span class="star">★</span> 4.7</span>
+            <span class="p-badge">Open Now</span>
+            <span style="font-size:.75rem;color:var(--cr-muted)">30 min</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="partner-card">
+        <div class="partner-logo" style="background:rgba(255,61,92,.12);">🌮</div>
+        <div>
+          <div class="partner-name">Fiesta Grill</div>
+          <div class="partner-type">Mexican · Fusion</div>
+          <div class="partner-meta">
+            <span class="rating"><span class="star">★</span> 4.6</span>
+            <span class="p-badge">Open Now</span>
+            <span style="font-size:.75rem;color:var(--cr-muted)">20 min</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="partner-card">
+        <div class="partner-logo" style="background:rgba(255,211,61,.12);">🍩</div>
+        <div>
+          <div class="partner-name">SugarRush</div>
+          <div class="partner-type">Desserts · Bakery</div>
+          <div class="partner-meta">
+            <span class="rating"><span class="star">★</span> 4.8</span>
+            <span class="p-badge">Open Now</span>
+            <span style="font-size:.75rem;color:var(--cr-muted)">15 min</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     APP DOWNLOAD
+════════════════════════════════════════ -->
+<section class="app-section" id="app">
+  <div class="container">
+    <div class="app-inner">
+
+      <div class="app-phones">
+        <div class="phone-mock">
+          <div class="phone-notch"></div>
+          <div class="phone-row">
+            <div class="ph-ico">🍕</div>
+            <div><div class="ph-line1"></div><div class="ph-line2"></div></div>
+            <div class="ph-price">₹349</div>
+          </div>
+          <div class="phone-row">
+            <div class="ph-ico">🍔</div>
+            <div><div class="ph-line1"></div><div class="ph-line2"></div></div>
+            <div class="ph-price">₹249</div>
+          </div>
+          <div style="background:var(--cr-orange);border-radius:10px;padding:.6rem;text-align:center;font-size:.75rem;font-weight:800;color:#fff;margin-top:.3rem;">Place Order →</div>
+        </div>
+        <div class="phone-mock">
+          <div class="phone-notch"></div>
+          <div style="background:rgba(76,175,130,.1);border:1px solid rgba(76,175,130,.2);border-radius:12px;padding:.75rem;text-align:center;">
+            <div style="font-size:1.5rem;margin-bottom:.3rem;">🛵</div>
+            <div style="font-size:.7rem;font-weight:700;color:var(--cr-green);">On the way!</div>
+            <div style="font-size:.65rem;color:var(--cr-muted);margin-top:.2rem;">ETA: 8 minutes</div>
+          </div>
+          <div class="phone-row" style="margin-top:.4rem;">
+            <div class="ph-ico">🍜</div>
+            <div><div class="ph-line1"></div><div class="ph-line2"></div></div>
+            <div class="ph-price">₹429</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:inline-block;background:rgba(255,87,34,.12);border:1px solid rgba(255,87,34,.25);color:var(--cr-orange2);font-size:.78rem;font-weight:700;padding:.3rem .85rem;border-radius:50px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.9rem">📱 Mobile App</div>
+        <h2 style="margin-bottom:.9rem">Order on the go.<br>Track in real time.</h2>
+        <p style="color:var(--cr-muted);font-size:.95rem;max-width:420px;margin-bottom:.5rem">
+          The CraveRush app puts your favourite restaurants in your pocket. 
+          Live GPS tracking, exclusive app-only deals, and one-tap reorder.
+        </p>
+
+        <div style="display:flex;gap:1.5rem;margin:1.5rem 0 .5rem;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:.5rem;font-size:.88rem;color:var(--cr-muted)">
+            <span style="color:var(--cr-orange)">✓</span> Real-time GPS tracking
+          </div>
+          <div style="display:flex;align-items:center;gap:.5rem;font-size:.88rem;color:var(--cr-muted)">
+            <span style="color:var(--cr-orange)">✓</span> Exclusive app deals
+          </div>
+          <div style="display:flex;align-items:center;gap:.5rem;font-size:.88rem;color:var(--cr-muted)">
+            <span style="color:var(--cr-orange)">✓</span> One-tap reorder
+          </div>
+          <div style="display:flex;align-items:center;gap:.5rem;font-size:.88rem;color:var(--cr-muted)">
+            <span style="color:var(--cr-orange)">✓</span> Offline menu browsing
+          </div>
+        </div>
+
+        <div class="app-store-btns">
+          <a href="#" class="store-btn">
+            <div class="store-icon">🍎</div>
+            <div>
+              <div class="store-label">Download on the</div>
+              <div class="store-name">App Store</div>
+            </div>
+          </a>
+          <a href="#" class="store-btn">
+            <div class="store-icon">▶</div>
+            <div>
+              <div class="store-label">Get it on</div>
+              <div class="store-name">Google Play</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     PROMO BANNER
+════════════════════════════════════════ -->
+<section class="promo-section">
+  <div class="container">
+    <div class="promo-inner">
+      <div style="font-size:.8rem;font-weight:700;color:var(--cr-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.75rem">🎁 Exclusive Offer</div>
+      <div class="promo-code">CRAVE50</div>
+      <h2>Get 50% Off Your First Order</h2>
+      <p>New to CraveRush? Use code CRAVE50 at checkout and enjoy half-price on your first delivery. No minimum order required!</p>
+      <a href="#menu" class="btn-primary" style="font-size:1rem;padding:.9rem 2.5rem;">
+        🍔 Claim My 50% Off
+      </a>
+      <p style="font-size:.78rem;color:var(--cr-muted);margin-top:1.25rem;margin-bottom:0;">*Valid for new users only. Expires 31 Dec 2026.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     FOOTER
+════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+
+      <div>
+        <a href="#" class="logo">
+          <div class="logo-icon">🍔</div>
+          <span class="logo-text">Crave<span>Rush</span></span>
+        </a>
+        <p class="footer-tagline">Hot food delivered to your door in 20 minutes or less. 800+ restaurants, 25+ cities.</p>
+        <div class="footer-socials">
+          <a href="#" class="soc-btn" title="Instagram">📸</a>
+          <a href="#" class="soc-btn" title="Twitter">🐦</a>
+          <a href="#" class="soc-btn" title="Facebook">👥</a>
+          <a href="#" class="soc-btn" title="YouTube">▶</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="#">Browse Restaurants</a></li>
+          <li><a href="#">Top Picks Today</a></li>
+          <li><a href="#">Offers & Deals</a></li>
+          <li><a href="#">New Arrivals</a></li>
+          <li><a href="#">Cuisines</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Partner With Us</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Press</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Help</h4>
+        <ul>
+          <li><a href="#">Track My Order</a></li>
+          <li><a href="#">FAQs</a></li>
+          <li><a href="#">Customer Support</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2026 CraveRush, Inc. All rights reserved.</span>
+      <div class="footer-badges">
+        <span class="f-badge">🔒 Secure Payments</span>
+        <span class="f-badge">🌱 Eco Packaging</span>
+        <span class="f-badge">⭐ 4.9 Rating</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+  // Mobile menu
+  const btn = document.getElementById('hamburgerBtn');
+  const nav = document.getElementById('mobileNav');
+  btn.addEventListener('click', () => nav.classList.toggle('open'));
+  nav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => nav.classList.remove('open')));
+
+  // Category chip active state
+  document.querySelectorAll('.cat-chip').forEach(chip => {
+    chip.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+
+  // Add to cart button micro-interaction
+  document.querySelectorAll('.add-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const orig = this.textContent;
+      this.textContent = '✓';
+      this.style.background = 'var(--cr-green)';
+      setTimeout(() => {
+        this.textContent = orig;
+        this.style.background = '';
+      }, 1200);
+    });
+  });
+
+  // Promo code copy on click
+  const promoCode = document.querySelector('.promo-code');
+  if (promoCode) {
+    promoCode.style.cursor = 'pointer';
+    promoCode.title = 'Click to copy';
+    promoCode.addEventListener('click', () => {
+      navigator.clipboard?.writeText('CRAVE50').catch(() => {});
+      const orig = promoCode.textContent;
+      promoCode.textContent = '✓ Copied!';
+      setTimeout(() => promoCode.textContent = orig, 1500);
+    });
+  }
+</script>
+</body>
+</html>
